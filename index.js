@@ -30,6 +30,11 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const E_Dokan_DB = client.db('E-Dokan').collection('AllProducts')
+    app.get('/allProduct', async (req,res)=>{
+      const cursor =await E_Dokan_DB.find().toArray()
+      // console.log(cursor);
+      res.send(cursor)
+    })
 
 
     // Send a ping to confirm a successful connection
