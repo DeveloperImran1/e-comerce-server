@@ -30,11 +30,49 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const E_Dokan_DB = client.db('E-Dokan').collection('AllProducts')
-    app.get('/allProduct', async (req,res)=>{
-      const cursor =await E_Dokan_DB.find().toArray()
-      // console.log(cursor);
-      res.send(cursor)
-    })
+    // Assuming you're using MongoDB native driver with Express.js
+
+    app.get('/allProduct', async (req, res) => {
+      try {
+        // Get page and limit from query parameters with default values
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 9;
+        const searchValue = req.query.search || ""; // default to empty string
+    
+        // Build the search query using regex if searchValue is provided
+        let query = {};
+        if (searchValue.trim() !== "") {  // Ensuring searchValue is not just whitespace
+          query = {
+            product_name: { $regex: new RegExp(searchValue, "i") }  // Proper regex construction
+          };
+        }
+    
+        // Calculate the number of documents to skip
+        const skip = (page - 1) * limit;
+    
+        // Fetch the total number of documents that match the query
+        const totalDocuments = await E_Dokan_DB.countDocuments(query);
+    
+        // Fetch the documents with pagination and search query applied
+        const products = await E_Dokan_DB.find(query)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+    
+        // Send the response with products, totalPages, and currentPage
+        res.json({
+          products,
+          totalPages: Math.ceil(totalDocuments / limit),
+          currentPage: page,
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+      }
+    });
+    
+    
+
 
 
     // Send a ping to confirm a successful connection
