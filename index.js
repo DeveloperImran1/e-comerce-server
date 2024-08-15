@@ -29,7 +29,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const dataBasecollection = client.db('databaseCollection').collection('change')
+    const E_Dokan_DB = client.db('E-Dokan').collection('AllProducts')
 
 
     // Send a ping to confirm a successful connection
