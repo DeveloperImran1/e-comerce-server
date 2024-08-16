@@ -38,7 +38,9 @@ async function run() {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
         const searchValue = req.query.search || ""; // default to empty string
-    
+        const priceValue = req.query.priceValue;
+        const datevalue =req.query.datevalue;
+        console.log(searchValue , priceValue ,datevalue);
         // Build the search query using regex if searchValue is provided
         let query = {};
         if (searchValue.trim() !== "") {  // Ensuring searchValue is not just whitespace
@@ -46,12 +48,18 @@ async function run() {
             product_name: { $regex: new RegExp(searchValue, "i") }  // Proper regex construction
           };
         }
+        options = {
+          sort: { date: -1 },
+        };
+        if(datevalue === true){
+          
+        }
     
         // Calculate the number of documents to skip
         const skip = (page - 1) * limit;
     
         // Fetch the total number of documents that match the query
-        const totalDocuments = await E_Dokan_DB.countDocuments(query);
+        const totalDocuments = await E_Dokan_DB.countDocuments(query , options);
     
         // Fetch the documents with pagination and search query applied
         const products = await E_Dokan_DB.find(query)
