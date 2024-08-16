@@ -34,35 +34,38 @@ async function run() {
 
     app.get('/allProduct', async (req, res) => {
       try {
-        // Get page and limit from query parameters with default values
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 9;
-        const searchValue = req.query.search || ""; // default to empty string
-        const priceValue = req.query.priceValue;
-        const datevalue =req.query.datevalue;
-        console.log(searchValue , priceValue ,datevalue);
-        // Build the search query using regex if searchValue is provided
+        const searchValue = req.query.search || "";
+        const priceValue = req.query.priceValue === "true";
+        const dateValue = req.query.datevalue === "asc" ? 1 : -1;
+    
+        // Build the search query if searchValue is provided
         let query = {};
-        if (searchValue.trim() !== "") {  // Ensuring searchValue is not just whitespace
+        if (searchValue.trim() !== "") {
           query = {
-            product_name: { $regex: new RegExp(searchValue, "i") }  // Proper regex construction
+            product_name: { $regex: new RegExp(searchValue, "i") },
           };
         }
-        options = {
-          sort: { date: -1 },
-        };
-        if(datevalue === true){
-          
+    
+        // Determine sorting options
+        let sortOptions = {};
+        if (priceValue) {
+          sortOptions.product_price = 1; // Low to High
+        } else {
+          sortOptions.product_price = -1; // High to Low
         }
+        sortOptions.date = dateValue; // Sort by date (ascending or descending)
     
         // Calculate the number of documents to skip
         const skip = (page - 1) * limit;
     
         // Fetch the total number of documents that match the query
-        const totalDocuments = await E_Dokan_DB.countDocuments(query , options);
+        const totalDocuments = await E_Dokan_DB.countDocuments(query);
     
-        // Fetch the documents with pagination and search query applied
+        // Fetch the documents with pagination, search query, and sorting applied
         const products = await E_Dokan_DB.find(query)
+          .sort(sortOptions)
           .skip(skip)
           .limit(limit)
           .toArray();
@@ -75,9 +78,11 @@ async function run() {
         });
       } catch (err) {
         console.error(err);
-        res.status(500).send('Server error');
+        res.status(500).send("Server error");
       }
     });
+    
+    
     
     
 
