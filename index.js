@@ -14,7 +14,6 @@ app.get("/", (req, res) => {
 
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.mi2xoxt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -25,67 +24,73 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const E_Dokan_DB = client.db("E-Dokan").collection("AllProducts");
-    // Assuming you're using MongoDB native driver with Express.js
 
-    app.get("/allProduct", async (req, res) => {
+    // Route to fetch all products
+    app.get("/AllProduct", async (req, res) => {
       try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 9;
-        const searchValue = req.query.search || "";
-        const priceValue = req.query.priceValue === "true";
-        const dateValue = req.query.datevalue === "asc" ? 1 : -1;
+        const {
+          page = 1,
+          limit = 12,
+          priceValue,
+          datevalue,
+          search,
+          category,
+          brands,
+        } = req.query;
 
-        // Build the search query if searchValue is provided
-        let query = {};
-        if (searchValue.trim() !== "") {
-          query = {
-            product_name: { $regex: new RegExp(searchValue, "i") },
-          };
+        // Create a filter object
+        const filter = {};
+
+        // Search query (searching in 'product_name')
+        if (search) {
+          filter.product_name = { $regex: search, $options: "i" };
         }
 
-        // Determine sorting options
-        let sortOptions = {};
+        // Category filter
+        if (category && category !== "") {
+          filter.product_category = category;
+        }
+
+        // Brands filter
+        if (brands && brands !== "") {
+          const brandArray = brands.split(",");
+          filter.brand_name = { $in: brandArray };
+        }
+
+        // Sorting logic
+        const sort = {};
         if (priceValue) {
-          sortOptions.product_price = 1; // Low to High
-        } else {
-          sortOptions.product_price = -1; // High to Low
+          sort.product_price = priceValue === "true" ? 1 : -1; // 1 for ascending, -1 for descending
         }
-        sortOptions.date = dateValue; // Sort by date (ascending or descending)
-        // Calculate the number of documents to skip
-        const skip = (page - 1) * limit;
+        if (datevalue) {
+          sort.date = datevalue === "asc" ? 1 : -1; // 1 for ascending, -1 for descending
+        }
 
-        // Fetch the total number of documents that match the query
-        const totalDocuments = await E_Dokan_DB.countDocuments(query);
+        // Fetch the filtered data from the MongoDB collection
+        const products = await E_Dokan_DB.find(filter)
+          .sort(sort)
+          .skip((page - 1) * limit)
+          .limit(Number(limit))
+          .toArray(); // Convert MongoDB cursor to an array
 
-        // Fetch the documents with pagination, search query, and sorting applied
-        const products = await E_Dokan_DB.find(query)
-          .sort(sortOptions)
-          .skip(skip)
-          .limit(limit)
-          .toArray();
-        // Send the response with products, totalPages, and currentPage
-        res.json({
-          products,
-          totalPages: Math.ceil(totalDocuments / limit),
-          currentPage: page,
-        });
-      } catch (err) {
-        console.error(err);
-        res.status(500).send("Server error");
+        // Count the total number of products
+        const totalProducts = await E_Dokan_DB.countDocuments(filter);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Send the response
+        res.json({ products, totalPages });
+      } catch (error) {
+        console.error("Error fetching products:", error.message); // Log the error message
+        res.status(500).json({ message: "Server Error", error: error.message });
       }
     });
 
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+    // Keeping the connection open for now
   }
 }
 run().catch(console.dir);
