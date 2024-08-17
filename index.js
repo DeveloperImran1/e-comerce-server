@@ -5,6 +5,15 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
+
+// const corsOption = {
+//   origin: ["http://localhost:5173", "https://guileless-trifle-921e8c.netlify.app/"],
+//   credentials: true,
+//   optionSuccessStatus: 200,
+// };         
+app.use(cors({
+  origin: 'https://guileless-trifle-921e8c.netlify.app' // Replace with your frontend domain
+}));
 app.use(cors());
 app.use(express.json());
 
@@ -24,7 +33,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const E_Dokan_DB = client.db("E-Dokan").collection("AllProducts");
 
     // Route to fetch all products
@@ -40,7 +49,7 @@ async function run() {
           brands,
           priceRange,
         } = req.query;
-        console.log(priceRange);
+        console.log(datevalue);
         // Create a filter object
         const filter = {};
 
@@ -88,10 +97,10 @@ async function run() {
       }
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Keeping the connection open for now
   }
