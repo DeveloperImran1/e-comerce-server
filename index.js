@@ -38,8 +38,9 @@ async function run() {
           search,
           category,
           brands,
+          priceRange,
         } = req.query;
-
+        console.log(priceRange);
         // Create a filter object
         const filter = {};
 
@@ -88,7 +89,9 @@ async function run() {
     });
 
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Keeping the connection open for now
   }
