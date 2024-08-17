@@ -5,15 +5,16 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
-
 // const corsOption = {
 //   origin: ["http://localhost:5173", "https://guileless-trifle-921e8c.netlify.app/"],
 //   credentials: true,
 //   optionSuccessStatus: 200,
-// };         
-app.use(cors({
-  origin: 'https://guileless-trifle-921e8c.netlify.app' // Replace with your frontend domain
-}));
+// };
+app.use(
+  cors({
+    origin: "https://guileless-trifle-921e8c.netlify.app", // Replace with your frontend domain
+  })
+);
 app.use(cors());
 app.use(express.json());
 
