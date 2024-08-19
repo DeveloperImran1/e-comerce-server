@@ -12,7 +12,7 @@ require("dotenv").config();
 // };
 app.use(
   cors({
-    origin: "https://guileless-trifle-921e8c.netlify.app", // Replace with your frontend domain
+    origin: ["https://e-comerce-singlepage.netlify.app", "http://localhost:5173"], // Replace with your frontend domain
   })
 );
 app.use(cors());
@@ -34,7 +34,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const E_Dokan_DB = client.db("E-Dokan").collection("AllProducts");
 
     // Route to fetch all products
@@ -98,10 +98,8 @@ async function run() {
       }
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+
+
   } finally {
     // Keeping the connection open for now
   }
